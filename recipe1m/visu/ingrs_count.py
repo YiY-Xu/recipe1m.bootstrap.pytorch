@@ -14,7 +14,7 @@ def main():
     Logger('.')
 
     split = 'train'
-    dir_exp = '/home/cadene/doc/bootstrap.pytorch/logs/recipe1m/trijoint/2017-12-14-15-04-51'
+    dir_exp = '/home/ubuntu/moochi/recipe1m.bootstrap.pytorch/logs/recipe1m/trijoint/2017-12-14-15-04-51'
     path_opts = os.path.join(dir_exp, 'options.yaml')
     dir_extract = os.path.join(dir_exp, 'extract_count', split)
     path_ingrs_count = os.path.join(dir_extract, 'ingrs.pth')

@@ -19,7 +19,7 @@ def main():
     split = 'test'
     class_name = None#'potato salad'
     modality_to_modality = 'recipe_to_image'
-    dir_exp = '/home/cadene/doc/bootstrap.pytorch/logs/recipe1m/trijoint/2017-12-14-15-04-51'
+    dir_exp = '/home/ubuntu/moochi/recipe1m.bootstrap.pytorch/logs/recipe1m/trijoint/2017-12-14-15-04-51'
     path_opts = os.path.join(dir_exp, 'options.yaml')
     dir_extract = os.path.join(dir_exp, 'extract', split)
     dir_extract_mean = os.path.join(dir_exp, 'extract_mean_features', split)

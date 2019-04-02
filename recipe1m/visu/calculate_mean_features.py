@@ -16,7 +16,7 @@ def main():
 
     #classes = ['pizza', 'pork chops', 'cupcake', 'hamburger', 'green beans']
     split = 'test'
-    dir_exp = '/home/cadene/doc/bootstrap.pytorch/logs/recipe1m/trijoint/2017-12-14-15-04-51'
+    dir_exp = '/home/ubuntu/moochi/recipe1m.bootstrap.pytorch/logs/recipe1m/trijoint/2017-12-14-15-04-51'
     path_opts = os.path.join(dir_exp, 'options.yaml')
     dir_extract = os.path.join(dir_exp, 'extract_mean_features', split)
     dir_img = os.path.join(dir_extract, 'image')

@@ -25,7 +25,7 @@ def main():
     modality_to_modality = args.modality_to_modality#'image_to_image'
     print(modality_to_modality)
     split = 'test'
-    dir_exp = '/home/cadene/doc/bootstrap.pytorch/logs/recipe1m/trijoint/2017-12-14-15-04-51'
+    dir_exp = '/home/ubuntu/moochi/recipe1m.bootstrap.pytorch/logs/recipe1m/trijoint/2017-12-14-15-04-51'
     path_opts = os.path.join(dir_exp, 'options.yaml')
     dir_extract = os.path.join(dir_exp, 'extract', split)
     dir_img = os.path.join(dir_extract, 'image')

@@ -25,7 +25,7 @@ def default_items_tf():
 class Images(data.Dataset):
 
     def __init__(self, dir_data, split, batch_size, nb_threads, items_tf=default_items_tf):
-        super(Dataset, self).__init__()
+        super().__init__()
         self.dir_data = dir_data
         self.split = split
         self.batch_size = batch_size
@@ -56,7 +56,7 @@ class Images(data.Dataset):
 class DatasetLMDB(data.Dataset):
 
     def __init__(self, dir_data, split, batch_size, nb_threads):
-        super(DatasetLMDB, self).__init__(dir_data, split, batch_size, nb_threads)
+        super().__init__(dir_data, split, batch_size, nb_threads)
         self.dir_lmdb = os.path.join(self.dir_data, 'data_lmdb')
 
         self.path_envs = {}
@@ -118,7 +118,7 @@ class DatasetLMDB(data.Dataset):
 class Images(DatasetLMDB):
 
     def __init__(self, dir_data, split, batch_size, nb_threads, image_from='database', image_tf=utils.default_image_tf(256, 224)):
-        super(Images, self).__init__(dir_data, split, batch_size, nb_threads)
+        super().__init__(dir_data, split, batch_size, nb_threads)
         self.image_tf = image_tf
         self.dir_img = os.path.join(dir_data, 'recipe1M', 'images')
 
@@ -188,7 +188,7 @@ class Images(DatasetLMDB):
 class Recipes(DatasetLMDB):
 
     def __init__(self, dir_data, split, batch_size, nb_threads):
-        super(Recipes, self).__init__(dir_data, split, batch_size, nb_threads)
+        super().__init__(dir_data, split, batch_size, nb_threads)
         self.path_ingrs = Options()['model']['network']['path_ingrs']
         with open(self.path_ingrs, 'rb') as fobj:
             data = pickle.load(fobj)
@@ -264,7 +264,7 @@ class Recipe1M(DatasetLMDB):
     def __init__(self, dir_data, split, batch_size=100, nb_threads=4, freq_mismatch=0.,
             batch_sampler='triplet_classif',
             image_from='dataset', image_tf=utils.default_image_tf(256, 224)):
-        super(Recipe1M, self).__init__(dir_data, split, batch_size, nb_threads)
+        super().__init__(dir_data, split, batch_size, nb_threads)
         self.images_dataset = Images(dir_data, split, batch_size, nb_threads, image_from=image_from, image_tf=image_tf)
         self.recipes_dataset = Recipes(dir_data, split, batch_size, nb_threads)
         self.freq_mismatch = freq_mismatch

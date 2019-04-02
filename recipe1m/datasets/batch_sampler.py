@@ -39,6 +39,9 @@ class RandomSamplerValues(Sampler):
     def __len__(self):
         return len(self.data_source)
 
+#class BatchSamplerColor:
+    """"""
+
 
 class BatchSamplerClassif(object):
     """Randomly samples indices from a list of indices grouped by class, without replacement.

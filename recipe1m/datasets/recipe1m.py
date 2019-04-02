@@ -53,7 +53,7 @@ class Images(data.Dataset):
                 collate_fn=self.items_tf(),
                 drop_last=True) # Removing last batch if not full (quick fix accuracy calculation with class 0 only)
 
-class DatasetLMDB(Dataset):
+class DatasetLMDB(data.Dataset):
 
     def __init__(self, dir_data, split, batch_size, nb_threads):
         super(DatasetLMDB, self).__init__(dir_data, split, batch_size, nb_threads)

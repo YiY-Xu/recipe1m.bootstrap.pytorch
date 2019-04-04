@@ -1,0 +1,92 @@
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62: options: 
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:   dataset:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     batch_sampler: triplet_classif
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     batch_size: 100
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     database: lmdb
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     debug: False
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     dir: data/recipe1m
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     eval_split: val
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     freq_mismatch: 0.0
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     image_from: database
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     import: recipe1m.datasets.factory
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     name: recipe1m
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     nb_classes: 1048
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     nb_threads: 4
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     train_split: train
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:   engine:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     debug: False
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     name: logger
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     nb_epochs: 80
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     print_freq: 10
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     saving_criteria: ['eval_epoch.metric.med_im2recipe_mean:min', 'eval_epoch.metric.recall_at_1_im2recipe_mean:max']
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:   exp:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     dir: logs/recipe1m/adamine
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     resume: None
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:   misc:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     cuda: True
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     logs_name: None
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     seed: 1338
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:   model:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     criterion:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       keep_background: False
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       name: trijoint
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       retrieval_strategy:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:         aggregation: valid
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:         margin: 0.3
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:         name: triplet
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:         nb_samples: 9999
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:         sampling: max_negative
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:         substrategy: ['IRR', 'RII', 'SIRR', 'SRII']
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:         substrategy_weights: [1.0, 1.0, 0.1, 0.1]
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     import: recipe1m.models.factory
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     metric:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       name: trijoint
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       nb_bags: 10
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       nb_matchs_per_bag: 1000
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       retrieval_dir: /tmp/recipe1m
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     name: trijoint
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     network:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       activations: ['tanh', 'normalize']
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       dim_emb: 1024
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       dim_image_out: 2048
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       dim_ingr_out: 300
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       dim_instr_in: 1024
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       dim_instr_out: 1024
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       name: trijoint
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       path_ingrs: data/recipe1m/text/vocab.pkl
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       with_ingrs: True
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:       with_instrs: True
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     with_classif: False
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:   optimizer:
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     batch_size_factor: None
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     clip_grad: 8.0
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     import: recipe1m.optimizers.factory
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     lr: 0.0001
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     name: trijoint_fixed_fine_tune
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:     switch_epoch: 20
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:   path_opts: recipe1m/options/adamine.yaml
+[S 2019-03-31 11:25:48] ...kages/bootstrap/run.py.62:   view: ['logs:train_epoch.loss', 'logs:train_epoch.bad_pairs', 'logs:eval_epoch.metric.med_im2recipe_mean', 'logs:eval_epoch.metric.recall_at_1_im2recipe_mean', 'logs:eval_epoch.metric.recall_at_5_im2recipe_mean', 'logs:eval_epoch.metric.recall_at_10_im2recipe_mean', 'logs:eval_epoch.metric.med_recipe2im_mean', 'logs:eval_epoch.metric.recall_at_1_recipe2im_mean', 'logs:eval_epoch.metric.recall_at_5_recipe2im_mean', 'logs:eval_epoch.metric.recall_at_10_recipe2im_mean', 'logs:optimizer.is_optimizer_recipe&image', 'logs:optimizer.total_norm']
+[I 2019-03-31 11:25:48] ...kages/bootstrap/run.py.63: posix.uname_result(sysname='Darwin', nodename='YiY-MacBook.fios-router.home', release='18.5.0', version='Darwin Kernel Version 18.5.0: Mon Mar 11 20:40:32 PDT 2019; root:xnu-4903.251.3~3/RELEASE_X86_64', machine='x86_64')
+[I 2019-03-31 11:25:48] ...rap/engines/factory.py.8: Creating engine...
+[I 2019-03-31 11:25:48] ...ap/datasets/factory.py.8: Creating dataset...
+[I 2019-03-31 11:25:48] ...kages/bootstrap/run.py.120: Traceback (most recent call last):
+  File "/Users/yiy/anaconda3/lib/python3.7/site-packages/bootstrap/run.py", line 113, in main
+    run(path_opts=path_opts)
+  File "/Users/yiy/anaconda3/lib/python3.7/site-packages/bootstrap/run.py", line 75, in run
+    engine.dataset = datasets.factory(engine)
+  File "/Users/yiy/anaconda3/lib/python3.7/site-packages/bootstrap/datasets/factory.py", line 14, in factory
+    module = importlib.import_module(Options()['dataset']['import'])
+  File "/Users/yiy/anaconda3/lib/python3.7/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1006, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 983, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 967, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 677, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 728, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/Users/yiy/CMU/Projects/LittleMochi/recipe1m.bootstrap.pytorch/recipe1m/datasets/factory.py", line 2, in <module>
+    from .recipe1m import Recipe1M
+  File "/Users/yiy/CMU/Projects/LittleMochi/recipe1m.bootstrap.pytorch/recipe1m/datasets/recipe1m.py", line 56, in <module>
+    class DatasetLMDB(Dataset):
+NameError: name 'Dataset' is not defined
+ 3

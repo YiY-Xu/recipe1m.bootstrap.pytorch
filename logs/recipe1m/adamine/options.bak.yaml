@@ -1,0 +1,87 @@
+exp:
+  dir: /home/ubuntu/moochi/recipe1m.bootstrap.pytorch/logs/recipe1m/adamine
+  resume: null
+dataset:
+  import: recipe1m.datasets.factory
+  name: recipe1m
+  dir: /home/ubuntu/moochi/recipe1m.bootstrap.pytorch/data/recipe1m
+  train_split: train
+  eval_split: val
+  nb_classes: 1048
+  database: lmdb
+  image_from: database
+  batch_size: 100
+  batch_sampler: triplet_classif
+  nb_threads: 4
+  freq_mismatch: 0.0
+model:
+  import: recipe1m.models.factory
+  name: trijoint
+  network:
+    name: trijoint
+    path_ingrs: /home/ubuntu/moochi/recipe1m.bootstrap.pytorch/data/recipe1m/text/vocab.pkl
+    dim_image_out: 2048
+    with_ingrs: true
+    dim_ingr_out: 300
+    with_instrs: true
+    dim_instr_in: 1024
+    dim_instr_out: 1024
+    dim_emb: 1024
+    activations:
+    - tanh
+    - normalize
+  criterion:
+    name: trijoint
+    keep_background: false
+    retrieval_strategy:
+      name: triplet
+      margin: 0.3
+      sampling: max_negative
+      nb_samples: 9999
+      aggregation: valid
+      substrategy:
+      - IRR
+      - RII
+      - SIRR
+      - SRII
+      substrategy_weights:
+      - 1.0
+      - 1.0
+      - 0.1
+      - 0.1
+  metric:
+    name: trijoint
+    retrieval_dir: /tmp/retrieval
+    nb_bags: 10
+    nb_matchs_per_bag: 1000
+  with_classif: false
+optimizer:
+  import: recipe1m.optimizers.factory
+  name: trijoint_fixed_fine_tune
+  switch_epoch: 20
+  lr: 0.0001
+engine:
+  name: logger
+  nb_epochs: 80
+  print_freq: 10
+  debug: false
+  saving_criteria:
+  - eval_epoch.metric.med_im2recipe_mean:min
+  - eval_epoch.metric.recall_at_1_im2recipe_mean:max
+misc:
+  cuda: true
+  seed: 1338
+  logs_name:
+view:
+- logs:train_epoch.loss
+- logs:train_epoch.bad_pairs
+- logs:eval_epoch.metric.med_im2recipe_mean
+- logs:eval_epoch.metric.recall_at_1_im2recipe_mean
+- logs:eval_epoch.metric.recall_at_5_im2recipe_mean
+- logs:eval_epoch.metric.recall_at_10_im2recipe_mean
+- logs:eval_epoch.metric.med_recipe2im_mean
+- logs:eval_epoch.metric.recall_at_1_recipe2im_mean
+- logs:eval_epoch.metric.recall_at_5_recipe2im_mean
+- logs:eval_epoch.metric.recall_at_10_recipe2im_mean
+- logs:optimizer.is_optimizer_recipe&image
+- logs:optimizer.total_norm

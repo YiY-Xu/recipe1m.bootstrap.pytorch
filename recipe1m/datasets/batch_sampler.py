@@ -178,19 +178,19 @@ class BatchSamplerTripletClassif(object):
 if __name__ == '__main__':
 
     batch_sampler = BatchSamplerClassif([
-        list(range(3)), # indices of class 1
+        list(range(7)), # indices of class 1
         list(range(10,14)), # class 2
         list(range(20,25))], # class 3
-        4, # batch_size
+        6, # batch_size
         2) # nb_indices_same_class
     print(list(batch_sampler))
 
     batch_sampler = BatchSamplerTripletClassif([
-        list(range(8)), # indices of background
+        list(range(9)), # indices of background
         list(range(10,14)), # class 1
         list(range(20,25)), # class 2
         list(range(30,36))], # class 3
         4, # batch_size
         pc_noclassif=0.5,
         nb_indices_same_class=2)
-    print(list(batch_sampler))
+    #print(list(batch_sampler))

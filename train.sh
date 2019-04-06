@@ -1,0 +1,1 @@
+python -m bootstrap.run -o recipe1m/options/adamine.yaml

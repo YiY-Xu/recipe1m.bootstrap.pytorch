@@ -74,6 +74,7 @@ class DatasetLMDB(Dataset):
         # len(imnames) train == 383687
         self.path_envs['imnames'] = os.path.join(self.dir_lmdb, split, 'imnames.lmdb')
         self.path_envs['ims'] = os.path.join(self.dir_lmdb, split, 'ims.lmdb')
+        self.path_envs['kmeans'] = os.path.join(self.dir_lmdb, split, 'kmeans.lmdb')
 
         self.envs = {}
         self.envs['ids'] = lmdb.open(self.path_envs['ids'])
@@ -117,18 +118,21 @@ class DatasetLMDB(Dataset):
 
 class Images(DatasetLMDB):
 
-    def __init__(self, dir_data, split, batch_size, nb_threads, image_from='database', image_tf=utils.default_image_tf(256, 224)):
+    def __init__(self, dir_data, split, batch_size, nb_threads, image_from='database', image_tf=utils.default_image_tf(256, 224), clusters=30):
         super().__init__(dir_data, split, batch_size, nb_threads)
+        self.clusters = clusters
         self.image_tf = image_tf
         self.dir_img = os.path.join(dir_data, 'recipe1M', 'images')
 
         self.envs['numims'] = lmdb.open(self.path_envs['numims'])
         self.envs['impos'] = lmdb.open(self.path_envs['impos'])
         self.envs['imnames'] = lmdb.open(self.path_envs['imnames'])
+        self.envs['kmeans'] = lmdb.open(self.path_envs['kmeans'])
 
         self.txns['numims'] = self.envs['numims'].begin(write=False, buffers=True)
         self.txns['impos'] = self.envs['impos'].begin(write=False, buffers=True)
         self.txns['imnames'] = self.envs['imnames'].begin(write=False, buffers=True)
+        self.txns['kmeans'] = self.envs['kmeans'].begin(write=False, buffers=True)
 
         self.image_from = image_from
         if self.image_from == 'database':
@@ -153,7 +157,8 @@ class Images(DatasetLMDB):
 
     def get_image(self, index):
         item = {}
-        item['data'], item['index'], item['path'] = self._load_image_data(index)
+        item['data'], item['index'], item['path'], item['cluster'] = self._load_image_data(index)
+        #item['data'], item['index'], item['path'], item['id'] = self._load_image_data(index)
         item['class_id'], item['class_name'] = self._load_class(index)
         return item
 
@@ -165,6 +170,7 @@ class Images(DatasetLMDB):
 
     def _load_image_data(self, index):
         # select random image from list of images for that sample
+        image_cluster = self.get(index, 'kmeans')
         nb_images = self.get(index, 'numims')
         if Options()['dataset'].get("debug", False):
             im_idx = 0
@@ -182,7 +188,11 @@ class Images(DatasetLMDB):
         if self.image_tf is not None:
             image_data = self.image_tf(image_data)
             
-        return image_data, index_img, path_img
+        return image_data, index_img, path_img, image_cluster
+        #return image_data, index_img, path_img, index
+
+    def _load_cluster(self, index):
+        return torch.LongTensor(self.get(index, 'kmeans'))
 
 
 class Recipes(DatasetLMDB):
@@ -274,6 +284,17 @@ class Recipe1M(DatasetLMDB):
         #self.indices_by_class = self._make_indices_by_class()
         if self.split == 'train' and self.batch_sampler == 'triplet_classif':
             self.indices_by_class = self._make_indices_by_class()
+            self.indices_by_cluster = self._make_indices_by_cluster()
+
+    def _make_indices_by_cluster(self):
+        Logger()('Calculate indices by cluster...')
+        indices_by_cluster = [[] for cluster in range(len(self.clusters))]
+        for index in range(len(self.images_dataset)):
+            print(cluster)
+            cluster = self._load_cluster(index)[0]
+            indices_by_cluster[class_id].append(index)
+        Logger()('Done!')
+        return indices_by_cluster
 
     def _make_indices_by_class(self):
         Logger()('Calculate indices by class...')

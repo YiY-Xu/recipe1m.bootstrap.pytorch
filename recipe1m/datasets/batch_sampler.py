@@ -39,8 +39,23 @@ class RandomSamplerValues(Sampler):
     def __len__(self):
         return len(self.data_source)
 
-#class BatchSamplerColor:
-    """"""
+class BatchSamplerCluster:
+    """Sample from same clusters but not same classes"""
+    def __init__(self, indices_by_cluster, batch_size, nb_indices_same_cluster):
+        if batch_size % nb_indices_same_cluster != 0:
+            raise ValueError('batch_size of BatchSamplerCluster ({}) must be divisible by nb_indices_same_cluster ({})'.format(
+                batch_size, nb_indices_same_cluster))
+
+        self.indices_by_cluster = indices_by_cluster
+        self.batch_size = batch_size
+        self.nb_indices_same_cluster = nb_indices_same_cluster
+
+        self.batch_sampler_by_cluster = []
+        for indices in indices_by_cluster:
+            self.batch_sampler_by_cluster.append(
+                BatchSampler(RandomSamplerValues(indices),
+                             self.nb_indices_same_cluster,
+                             True))
 
 
 class BatchSamplerClassif(object):

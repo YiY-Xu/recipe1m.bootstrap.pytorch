@@ -137,6 +137,12 @@ class Triplet(nn.Module):
         else:
             exceeding_type = 0
 
+        print(class1)
+        print(class1.size())
+        print(class2)
+        print(class2.size())
+
+
         # Prepare instance samples (matched pairs)
         matches = target.squeeze(1) == 1 # To support -1 or 0 as mismatch
         instance_input1 = input1[matches].view(matches.sum().int().item(), input1.size(1))

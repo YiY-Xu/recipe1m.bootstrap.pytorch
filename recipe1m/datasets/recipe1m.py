@@ -192,7 +192,12 @@ class Images(DatasetLMDB):
         #return image_data, index_img, path_img, index
 
     def _load_cluster(self, index):
-        return torch.LongTensor(self.get(index, 'kmeans'))
+        cluster = 30
+        try:
+            cluster = self.get(index, 'kmeans')
+        except:
+            print(index)
+        return cluster
 
 
 class Recipes(DatasetLMDB):
@@ -288,12 +293,13 @@ class Recipe1M(DatasetLMDB):
 
     def _make_indices_by_cluster(self):
         Logger()('Calculate indices by cluster...')
-        indices_by_cluster = [[] for cluster in range(len(self.clusters))]
+        indices_by_cluster = [[] for cluster in range(self.images_dataset.clusters + 1)]
         for index in range(len(self.images_dataset)):
-            print(cluster)
-            cluster = self._load_cluster(index)[0]
-            indices_by_cluster[class_id].append(index)
+            cluster = self.images_dataset._load_cluster(index)
+            indices_by_cluster[cluster].append(index)
         Logger()('Done!')
+        lengths = [len(item) for item in indices_by_cluster]
+        print(lengths)
         return indices_by_cluster
 
     def _make_indices_by_class(self):
@@ -315,9 +321,11 @@ class Recipe1M(DatasetLMDB):
         elif self.batch_sampler == 'triplet_classif':
             batch_sampler = BatchSamplerTripletClassif(
                 self.indices_by_class,
+                self.indices_by_cluster,
                 self.batch_size,
                 pc_noclassif=0.5,
-                nb_indices_same_class=2)
+                nb_indices_same_class=2,
+                nb_indices_same_cluster=2)
             batch_loader = data.DataLoader(self,
                 num_workers=self.nb_threads,
                 batch_sampler=batch_sampler,

@@ -51,12 +51,39 @@ class BatchSamplerCluster:
         self.nb_indices_same_cluster = nb_indices_same_cluster
 
         self.batch_sampler_by_cluster = []
+        print(indices_by_cluster)
         for indices in indices_by_cluster:
             self.batch_sampler_by_cluster.append(
                 BatchSampler(RandomSamplerValues(indices),
                              self.nb_indices_same_cluster,
                              True))
 
+    def _make_nb_samples_by_cluster(self):
+        return [len(sampler) for sampler in self.batch_sampler_by_cluster]
+
+    def __iter__(self):
+        nb_samples_by_cluster = torch.Tensor(self._make_nb_samples_by_cluster())
+        gen_by_cluster = [sampler.__iter__() for sampler in self.batch_sampler_by_cluster]
+
+        for i in range(len(self)):
+            batch = []
+            nb_samples = self.batch_size // self.nb_indices_same_cluster
+            for j in range(nb_samples):
+                # Class sampling
+                if Options()['dataset'].get("debug", False):
+                    idx = np.random.multinomial(1,(nb_samples_by_cluster / sum(nb_samples_by_cluster)).numpy()).argmax()
+                else:
+                    idx = torch.multinomial(nb_samples_by_cluster,
+                        1, # num_samples
+                        False)[0] #replacement
+
+                nb_samples_by_cluster[idx] -= 1
+                batch += gen_by_cluster[idx].__next__()
+            yield batch
+
+    def __len__(self):
+        nb_possible_indices = sum(self._make_nb_samples_by_cluster()) * self.nb_indices_same_cluster
+        return nb_possible_indices // self.batch_size
 
 class BatchSamplerClassif(object):
     """Randomly samples indices from a list of indices grouped by class, without replacement.
@@ -154,21 +181,30 @@ class BatchSamplerTripletClassif(object):
         [[13, 12, 2, 5], [31, 32, 4, 0], [33, 30, 6, 3], [23, 22, 7, 1]]
     """
 
-    def __init__(self, indices_by_class, batch_size, pc_noclassif=0.5, nb_indices_same_class=2):
+    def __init__(self, indices_by_class, indices_by_cluster, batch_size, pc_noclassif=0.5, nb_indices_same_class=2, nb_indices_same_cluster=2):
+        self.indices_by_cluster = copy.copy(indices_by_cluster)
         self.indices_by_class = copy.copy(indices_by_class)
         self.indices_no_class = self.indices_by_class.pop(0)
         self.batch_size = batch_size
         self.pc_noclassif = pc_noclassif
         self.nb_indices_same_class = nb_indices_same_class
+        self.nb_indices_same_cluster = nb_indices_same_cluster
 
         self.batch_size_classif = round((1 - self.pc_noclassif) * self.batch_size)
-        self.batch_size_noclassif = self.batch_size - self.batch_size_classif
+        self.batch_size_cluster = self.batch_size - self.batch_size_classif
+        #self.batch_size_noclassif = self.batch_size - self.batch_size_classif
+
+        # # Batch Sampler NoClassif
+        # self.batch_sampler_noclassif = BatchSampler(
+        #     RandomSamplerValues(self.indices_no_class),
+        #     self.batch_size_noclassif,
+        #     True)
 
         # Batch Sampler NoClassif
-        self.batch_sampler_noclassif = BatchSampler(
-            RandomSamplerValues(self.indices_no_class),
-            self.batch_size_noclassif,
-            True)
+        self.batch_sampler_by_cluster = BatchSamplerCluster(
+            RandomSamplerValues(self.indices_by_cluster),
+            self.batch_size_cluster,
+            self.nb_indices_same_cluster)
 
         # Batch Sampler Classif
         self.batch_sampler_classif = BatchSamplerClassif(
@@ -178,7 +214,8 @@ class BatchSamplerTripletClassif(object):
 
     def __iter__(self):
         gen_classif = self.batch_sampler_classif.__iter__()
-        gen_noclassif = self.batch_sampler_noclassif.__iter__()
+        #gen_noclassif = self.batch_sampler_noclassif.__iter__()
+        gen_noclassif = self.batch_sampler_by_cluster.__iter__()
         for i in range(len(self)):
             batch = []
             batch += gen_classif.__next__()
@@ -187,7 +224,7 @@ class BatchSamplerTripletClassif(object):
 
     def __len__(self):
         return min([len(self.batch_sampler_classif),
-                    len(self.batch_sampler_noclassif)])
+                    len(self.batch_sampler_by_cluster)])
 
 
 if __name__ == '__main__':

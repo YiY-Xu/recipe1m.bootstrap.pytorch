@@ -51,7 +51,6 @@ class BatchSamplerCluster:
         self.nb_indices_same_cluster = nb_indices_same_cluster
 
         self.batch_sampler_by_cluster = []
-        print(indices_by_cluster)
         for indices in indices_by_cluster:
             self.batch_sampler_by_cluster.append(
                 BatchSampler(RandomSamplerValues(indices),

@@ -205,7 +205,7 @@ class Recipes(DatasetLMDB):
     def __init__(self, dir_data, split, batch_size, nb_threads):
         super().__init__(dir_data, split, batch_size, nb_threads)
         self.path_ingrs = Options()['model']['network']['path_ingrs']
-        print(self.path_ingrs)
+
         with open(self.path_ingrs, 'rb') as fobj:
             data = pickle.load(fobj)
         # idx+1 because 0 is padding
@@ -299,7 +299,6 @@ class Recipe1M(DatasetLMDB):
             indices_by_cluster[cluster].append(index)
         Logger()('Done!')
         lengths = [len(item) for item in indices_by_cluster]
-        print(lengths)
         return indices_by_cluster
 
     def _make_indices_by_class(self):

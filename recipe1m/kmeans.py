@@ -26,6 +26,7 @@ class Kmeans:
 
     def print_data(self, split):
         image_dataset = Images(self.data_path, split, 100, 4)
+        print(image_dataset.__len__())
         for i, sample_batch in enumerate(tqdm(image_dataset.make_batch_loader(False))):
             imgs = sample_batch['data'].numpy()
             clusters = sample_batch['cluster']
@@ -41,6 +42,24 @@ class Kmeans:
             indices = sample_batch['id']
             imgs = self.get_color_histogram(imgs)
             clusters = kmeans.predict(imgs)
+            self.write_lmdb(split, indices, clusters)
+
+    def apply_kmeans_leftover(self, split, start, length):
+        print('here')
+        with open('../kmean_models/kmean_model.pkl', 'rb') as f:
+            kmeans = pickle.load(f)
+
+        indices = range(start, start+length)
+
+        image_dataset = Images(self.data_path, split, 100, 4)
+        for i in indices:
+            print(i)
+            image = image_dataset.get_image(i)
+            indices = [image['id']]
+            img = np.array([image['data'].numpy()])
+            imgs = self.get_color_histogram(img).reshape(1, -1)
+            clusters = kmeans.predict(imgs)
+            #print(indices, clusters)
             self.write_lmdb(split, indices, clusters)
 
     def write_lmdb(self, split, indices, values):
@@ -68,6 +87,7 @@ class Kmeans:
 if __name__ == '__main__':
     kmeans = Kmeans('/home/ubuntu/moochi/recipe1m.bootstrap.pytorch/data/recipe1m', 
         '/home/ubuntu/moochi/recipe1m.bootstrap.pytorch/data/recipe1m/data_lmdb')
-    kmeans.apply_kmeans('train')
-    #kmeans.print_data('test')
+    #kmeans.apply_kmeans('test')
+    #kmeans.apply_kmeans_leftover('val', 51100, 19)
+    #kmeans.print_data('val')
 

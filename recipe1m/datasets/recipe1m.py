@@ -322,6 +322,7 @@ class Recipe1M(DatasetLMDB):
                 self.indices_by_class,
                 self.indices_by_cluster,
                 self.batch_size,
+                True,
                 pc_noclassif=0.5,
                 nb_indices_same_class=2,
                 nb_indices_same_cluster=2)

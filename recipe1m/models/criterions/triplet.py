@@ -90,18 +90,30 @@ class Triplet(nn.Module):
         anti_class = same_class.clone()
 
         anti_class = anti_class == 0 # get the dissimilar classes
+
+        print("same_class size: {}".format(same_class.size()))
+        print("***")
+        print("same_class size: {}".format(anti_class.size()))
+
         if erase_diagonal:
             same_class[range(same_class.size(0)),range(same_class.size(1))] = 0 # erase instance-instance pairs
         new_dimension = matrix_mask.int().sum(1).max().item()
         same_class = torch.masked_select(same_class, matrix_mask).view(new_dimension, new_dimension)
         anti_class = torch.masked_select(anti_class, matrix_mask).view(new_dimension, new_dimension)
-        mdistances = torch.masked_select(distances, matrix_mask).view(new_dimension, new_dimension)
 
+        print("same_class size: {}".format(same_class.size()))
+        print("***")
+        print("same_class size: {}".format(anti_class.size()))
+        
+        mdistances = torch.masked_select(distances, matrix_mask).view(new_dimension, new_dimension)
         same_class[same_class.cumsum(dim=1) > 1] = 0 # erasing extra positives
         pos_samples = torch.masked_select(mdistances, same_class) # only the first one
+        print("pos_samples size: {}".format(pos_samples.size()))
+
         min_neg_samples = anti_class.int().sum(1).min().item() # selecting max negatives possible
         anti_class[anti_class.cumsum(dim=1) > min_neg_samples] = 0 # erasing extra negatives
         neg_samples = torch.masked_select(mdistances, anti_class).view(new_dimension, min_neg_samples)
+        print("neg_samples size: {}".format(neg_samples.size()))
 
         cost = pos_samples.unsqueeze(1) - neg_samples + self.alpha
         cost[cost < 0] = 0 # hinge
@@ -114,6 +126,8 @@ class Triplet(nn.Module):
         # Detect and treat unbalanced batch
         size1 = class1.size(0)
         size2 = class2.size(0)
+
+        print("1. class1: {}, class2: {}".format(str(class1.size()), str(class2.size())))
         if size1 > size2:
             exceeding_input = input1[size2:,:] # Set exceeding samples apart
             exceeding_class = class1[size2:,:] # Set exceeding samples apart
@@ -137,12 +151,15 @@ class Triplet(nn.Module):
         else:
             exceeding_type = 0
 
+
         # Prepare instance samples (matched pairs)
         matches = target.squeeze(1) == 1 # To support -1 or 0 as mismatch
         instance_input1 = input1[matches].view(matches.sum().int().item(), input1.size(1))
         instance_class1 = class1[matches]
         instance_input2 = input2[matches].view(matches.sum().int().item(), input2.size(1))
         instance_class2 = class2[matches]
+
+        print("1. instance_class1: {}, instance_class2: {}".format(str(instance_class1.size()), str(instance_class2.size())))
 
         # Prepare semantic samples (class != 0)
         valid_input1 = class1.squeeze(1) != 0
@@ -152,6 +169,8 @@ class Triplet(nn.Module):
         semantic_input2 = input2[valid_input2].view(valid_input2.sum().int().item(), input2.size(1))
         semantic_class2 = class2[valid_input2]
 
+        print("1. semantic_class1: {}, semantic_class2: {}".format(str(semantic_class1.size()), str(semantic_class2.size())))
+
         # Augmented semantic samples (unmatched and class != 0)
         extra_input1 = (matches == 0) + valid_input1 == 2
         extra_input2 = (matches == 0) + valid_input2 == 2
@@ -160,6 +179,7 @@ class Triplet(nn.Module):
         augmented_input2 = input2[extra_input2].view(extra_input2.sum().int().item(), input2.size(1))
         augmented_class2 = class2[extra_input2]
         
+        print("1. augmented_class1: {}, augmented_class2: {}".format(str(augmented_class1.size()), str(augmented_class2.size())))
         # Instance-based triplets
         if len(set(['IRR', 'RII', 'IRI', 'RIR', 'LIFT']).intersection(self.substrategy)) > 0:
             distances = self.dist(instance_input1, instance_input2)
@@ -200,6 +220,7 @@ class Triplet(nn.Module):
         if len(set(['SIRR', 'SRII']).intersection(self.substrategy)) > 0:
             distances = self.dist(semantic_input1, semantic_input2)
             if 'SIRR' in self.substrategy:
+                print("1. semantic_class1: {}, semantic_class2: {}".format(str(semantic_class1.size()), str(semantic_class2.size())))
                 cost = self.semantic_multimodal(distances, semantic_class1, semantic_class2)
                 self.add_cost('SIRR', self.calculate_cost(cost), bad_pairs, losses)
 

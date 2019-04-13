@@ -240,10 +240,10 @@ class BatchSamplerClassWithNegInSameCluster(object):
 
                 #to remove
                 cluster = self.cluster_by_index[idx]
-                print("Check here cluster : {}".format(cluster))
+                #print("Check here cluster : {}".format(cluster))
 
                 neg_batch += gen_by_cluster[cluster].__next__()
-                print("Check here neg_batch : {}".format(len(neg_batch)))
+                #print("Check here neg_batch : {}".format(len(neg_batch)))
 
             yield pos_batch + neg_batch
 
@@ -304,6 +304,8 @@ class BatchSamplerTripletClassif(object):
         self.batch_size_classif = round((1 - self.pc_noclassif) * self.batch_size)
         self.batch_size_noclassif = self.batch_size - self.batch_size_classif
 
+        print("none class length : {}".format(self.batch_size_noclassif))
+
         # Batch Sampler Same Clusters
         # self.batch_sampler_noclassif = BatchSamplerCluster(
         #     RandomSamplerValues(self.indices_by_cluster),
@@ -332,12 +334,11 @@ class BatchSamplerTripletClassif(object):
 
     def __iter__(self):
         gen_classif = self.batch_sampler_classif.__iter__()
-        #gen_noclassif = self.batch_sampler_noclassif.__iter__()
         gen_noclassif = self.batch_sampler_noclassif.__iter__()
         for i in range(len(self)):
             batch = []
             batch += gen_classif.__next__()
-            batch += gen_noclassif.__next__()
+            batch += gen_noclassif.__next__()[:25]
             yield batch
 
     def __len__(self):

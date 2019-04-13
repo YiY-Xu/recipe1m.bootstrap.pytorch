@@ -256,7 +256,7 @@ class Recipes(DatasetLMDB):
 
     def _load_ingrs(self, index):
         ingrs = {}
-        print("ingrs index is {}".format(index))
+        #print("ingrs index is {}".format(index))
         ingrs['data'] = torch.LongTensor(self.get(index, 'ingrs'))
         max_length = ingrs['data'].size(0)
         ingrs['lengths'] = max_length - ingrs['data'].eq(0).sum(0).item()

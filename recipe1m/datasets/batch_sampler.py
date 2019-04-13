@@ -1,6 +1,7 @@
 import copy
 import torch
 import numpy as np
+import random
 from torch.utils.data.sampler import Sampler
 #from torch.utils.data.sampler import SequentialSampler
 from torch.utils.data.sampler import RandomSampler
@@ -41,7 +42,7 @@ class RandomSamplerValues(Sampler):
 
 class BatchSamplerCluster:
     """Sample from same clusters but not same classes"""
-    def __init__(self, indices_by_cluster, batch_size, nb_indices_same_cluster, pos_clusters):
+    def __init__(self, indices_by_cluster, batch_size, nb_indices_same_cluster):
         if batch_size % nb_indices_same_cluster != 0:
             raise ValueError('batch_size of BatchSamplerCluster ({}) must be divisible by nb_indices_same_cluster ({})'.format(
                 batch_size, nb_indices_same_cluster))
@@ -155,15 +156,18 @@ class BatchSamplerClassif(object):
 
 class BatchSamplerClassWithNegInSameCluster(object):
 
-    def __init__(self, indices_by_class, indices_by_cluster, batch_size, nb_indices_same_class):
+    def __init__(self, indices_by_class, indices_by_cluster, cluster_by_index, batch_size, nb_indices_same_class):
         if batch_size % nb_indices_same_class != 0:
             raise ValueError('batch_size of BatchSamplerClassWithNegInSameCluster ({}) must be divisible by nb_indices_same_class ({})'.format(
                 batch_size, nb_indices_same_class))
+        if nb_indices_same_class % 2 != 0:
+            raise ValueError('nb_indices_same_class should be an even number')
 
         self.indices_by_class = indices_by_class
         self.indices_by_cluster = indices_by_cluster
         self.batch_size = batch_size
         self.nb_indices_same_class = nb_indices_same_class
+        self.cluster_by_index = cluster_by_index
 
         self.batch_sampler_by_class = []
         for indices in self.indices_by_class:
@@ -177,7 +181,7 @@ class BatchSamplerClassWithNegInSameCluster(object):
         for indices in self.indices_by_cluster:
             self.batch_sampler_by_cluster.append(
                 BatchSampler(RandomSamplerValues(indices),
-                             self.nb_indices_same_class,
+                             self.nb_indices_same_class//2,
                              True))
 
     def _make_nb_samples_by_class(self):
@@ -187,21 +191,30 @@ class BatchSamplerClassWithNegInSameCluster(object):
         """
         return [len(sampler) for sampler in self.batch_sampler_by_class]
 
-    def _find_cluster_index(self, class_id):
-        for i in range(self.indices_by_cluster):
-            if class_id in self.indices_by_cluster[i]:
-                return i
+    def _find_cluster_index(self, samples):
+        print("class id is {}".format(samples))
+        clusters = []
+        for sample in samples:
+            for i in range(len(self.indices_by_cluster)):
+                #print(sample, self.indices_by_cluster[i])
+                if sample in self.indices_by_cluster[i]:
+                    clusters += self.indices_by_cluster[i]
+        #print("{} has no cluster".format(samples))
+        return clusters
         
     def __iter__(self):
         
         nb_samples_by_class = torch.Tensor(self._make_nb_samples_by_class())
         gen_by_class = [sampler.__iter__() for sampler in self.batch_sampler_by_class]
 
+        ### to remove
+        gen_by_cluster = [sampler.__iter__() for sampler in self.batch_sampler_by_cluster]
+
         print("key place is here")
-        print("gen_by_class: {}".format(gen_by_class))
         print("len is {}".format(len(gen_by_class)))
         print("nb_samples_by_class: {}".format(nb_samples_by_class))
         print("nb_samples_by_class len is {}".format(len(nb_samples_by_class)))
+        print("total batch is {}".format(len(self)))
 
         for i in range(len(self)):
             pos_batch = []
@@ -217,19 +230,20 @@ class BatchSamplerClassWithNegInSameCluster(object):
                         1, # num_samples
                         False)[0] #replacement
 
-                print("yeild class id is {}".format(str(idx)))
+                #print("yeild class id is {}".format(str(idx)))
 
                 nb_samples_by_class[idx] -= 1
                 ## generate class:
                 pos_sample = gen_by_class[idx].__next__()
-                print("pos_sample is {}".format(str(pos_sample)))
+                #print("pos_sample is {}".format(str(pos_sample)))
                 pos_batch += pos_sample
 
-                cluster_index = self._find_cluster_index(idx)
-                print("yielded cluster is {}".format(str(cluster_index)))
+                #to remove
+                cluster = self.cluster_by_index[idx]
+                print("Check here cluster : {}".format(cluster))
 
-                neg_sample = self.batch_sampler_by_cluster[cluster_index].__iter__()
-                neg_batch += neg_sample
+                neg_batch += gen_by_cluster[cluster].__next__()
+                print("Check here neg_batch : {}".format(len(neg_batch)))
 
             yield pos_batch + neg_batch
 
@@ -270,10 +284,17 @@ class BatchSamplerTripletClassif(object):
         [[13, 12, 2, 5], [31, 32, 4, 0], [33, 30, 6, 3], [23, 22, 7, 1]]
     """
 
-    def __init__(self, indices_by_class, indices_by_cluster, batch_size, use_cluster, pc_noclassif=0.5, nb_indices_same_class=2, nb_indices_same_cluster=2):
+    def __init__(self, indices_by_class, indices_by_cluster, cluster_by_index, batch_size, use_cluster, pc_noclassif=0.25, nb_indices_same_class=2, nb_indices_same_cluster=2):
         self.indices_by_cluster = copy.copy(indices_by_cluster)
         self.indices_by_class = copy.copy(indices_by_class)
         self.indices_no_class = self.indices_by_class.pop(0)
+        self.cluster_by_index = cluster_by_index
+
+        remove_target = copy.copy(self.indices_no_class)
+        for index in remove_target:
+            cluster = self.cluster_by_index[index]
+            self.indices_by_cluster[cluster].remove(index)
+
         self.batch_size = batch_size
         self.pc_noclassif = pc_noclassif
         self.use_cluster = use_cluster
@@ -284,18 +305,30 @@ class BatchSamplerTripletClassif(object):
         self.batch_size_noclassif = self.batch_size - self.batch_size_classif
 
         # Batch Sampler Same Clusters
-        self.batch_sampler_noclassif = BatchSamplerCluster(
-            RandomSamplerValues(self.indices_by_cluster),
-            self.batch_size_noclassif,
-            self.nb_indices_same_cluster) if self.use_cluster else BatchSampler(
+        # self.batch_sampler_noclassif = BatchSamplerCluster(
+        #     RandomSamplerValues(self.indices_by_cluster),
+        #     self.batch_size_noclassif,
+        #     self.nb_indices_same_cluster) if self.use_cluster else 
+
+        self.batch_sampler_noclassif = BatchSampler(
             RandomSamplerValues(self.indices_no_class),
             self.batch_size_noclassif, True)
 
         # Batch Sampler Classif
-        self.batch_sampler_classif = BatchSamplerClassif(
-            RandomSamplerValues(self.indices_by_class),
-            self.batch_size_classif,
-            self.nb_indices_same_class)
+        if use_cluster:
+            self.batch_sampler_classif = BatchSamplerClassWithNegInSameCluster(
+                RandomSamplerValues(self.indices_by_class),
+                self.indices_by_cluster, #list of 30 clusters with list of index
+                self.cluster_by_index,
+                self.batch_size_classif,
+                self.nb_indices_same_class)
+        else:
+            self.batch_sampler_classif = BatchSamplerClassif(
+                RandomSamplerValues(self.indices_by_class),
+                self.batch_size_classif,
+                self.nb_indices_same_class)
+
+        
 
     def __iter__(self):
         gen_classif = self.batch_sampler_classif.__iter__()
@@ -308,8 +341,8 @@ class BatchSamplerTripletClassif(object):
             yield batch
 
     def __len__(self):
-        return min([len(self.batch_sampler_classif),
-                    len(self.batch_sampler_noclassif)])
+        length = min([len(self.batch_sampler_classif), len(self.batch_sampler_noclassif)])
+        return length
 
 
 if __name__ == '__main__':

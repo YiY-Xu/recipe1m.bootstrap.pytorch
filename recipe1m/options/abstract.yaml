@@ -12,7 +12,7 @@ dataset:
     image_from: database # or pil_loader
     batch_size: 100 # = optimizer.batch_size or inferior
     batch_sampler: triplet_classif # random or triplet_classif
-    nb_threads: 4
+    nb_threads: 1
     debug: False
 model:
     import: recipe1m.models.factory

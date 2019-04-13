@@ -47,7 +47,6 @@ class Trijoint(nn.Module):
             raise ValueError('Unknown loss ({})'.format(self.retrieval_strategy))
 
     def forward(self, net_out, batch):
-        print(batch)
         if self.retrieval_strategy == 'triplet':
             out = self.criterion_retrieval(net_out['image_embedding'],
                                            net_out['recipe_embedding'],

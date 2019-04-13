@@ -12,7 +12,7 @@ dataset:
   image_from: database
   batch_size: 100
   batch_sampler: triplet_classif
-  nb_threads: 4
+  nb_threads: 1
   debug: false
   freq_mismatch: 0.0
 model:

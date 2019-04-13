@@ -42,6 +42,7 @@ class Kmeans:
             indices = sample_batch['id']
             imgs = self.get_color_histogram(imgs)
             clusters = kmeans.predict(imgs)
+
             self.write_lmdb(split, indices, clusters)
 
     def apply_kmeans_leftover(self, split, start, length):
@@ -87,7 +88,16 @@ class Kmeans:
 if __name__ == '__main__':
     kmeans = Kmeans('/home/ubuntu/moochi/recipe1m.bootstrap.pytorch/data/recipe1m', 
         '/home/ubuntu/moochi/recipe1m.bootstrap.pytorch/data/recipe1m/data_lmdb')
+    #kmeans.apply_kmeans('train')
+    kmeans.apply_kmeans_leftover('train', 238300, 99)
+
+    #kmeans.apply_kmeans('val')
+    kmeans.apply_kmeans_leftover('val', 51100, 19)
+
     #kmeans.apply_kmeans('test')
-    #kmeans.apply_kmeans_leftover('val', 51100, 19)
+    kmeans.apply_kmeans_leftover('test', 51300, 3)
+    
+    #kmeans.print_data('train')
     #kmeans.print_data('val')
+    #kmeans.print_data('test')
 

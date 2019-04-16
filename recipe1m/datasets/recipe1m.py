@@ -290,6 +290,7 @@ class Recipe1M(DatasetLMDB):
         self.recipes_dataset = Recipes(dir_data, split, batch_size, nb_threads)
         self.freq_mismatch = freq_mismatch
         self.batch_sampler = batch_sampler
+        self.init = True
 
         #self.indices_by_class = self._make_indices_by_class()
         if self.split == 'train' and self.batch_sampler == 'triplet_classif':
@@ -325,20 +326,39 @@ class Recipe1M(DatasetLMDB):
                 batch_loader = super(Recipe1M, self).make_batch_loader(shuffle=shuffle)
             Logger()('Dataset will be sampled with "random" batch_sampler.')
         elif self.batch_sampler == 'triplet_classif':
-            batch_sampler = BatchSamplerTripletClassif(
-                self.indices_by_class,
-                self.indices_by_cluster,
-                self.cluster_by_index,
-                self.batch_size,
-                True,
-                pc_noclassif=0.5,
-                nb_indices_same_class=2,
-                nb_indices_same_cluster=2)
-            batch_loader = data.DataLoader(self,
-                num_workers=self.nb_threads,
-                batch_sampler=batch_sampler,
-                pin_memory=True,
-                collate_fn=self.items_tf())
+            if self.init:
+                print("initializing dataset...")
+                batch_sampler = BatchSamplerTripletClassif(
+                    self.indices_by_class,
+                    self.indices_by_cluster,
+                    self.cluster_by_index,
+                    self.batch_size,
+                    True,
+                    pc_noclassif=0.5,
+                    nb_indices_same_class=2,
+                    nb_indices_same_cluster=2,
+                    init=self.init)
+                batch_loader = data.DataLoader(self,
+                    num_workers=self.nb_threads,
+                    batch_sampler=batch_sampler,
+                    pin_memory=True,
+                    collate_fn=self.items_tf())
+                self.init = False
+            else:
+                batch_sampler = BatchSamplerTripletClassif(
+                    self.indices_by_class,
+                    self.indices_by_cluster,
+                    self.cluster_by_index,
+                    self.batch_size,
+                    True,
+                    pc_noclassif=0.5,
+                    nb_indices_same_class=2,
+                    nb_indices_same_cluster=2)
+                batch_loader = data.DataLoader(self,
+                    num_workers=self.nb_threads,
+                    batch_sampler=batch_sampler,
+                    pin_memory=True,
+                    collate_fn=self.items_tf())
             Logger()('Dataset will be sampled with "triplet_classif" batch_sampler.')
         else:
             raise ValueError()

@@ -284,16 +284,24 @@ class BatchSamplerTripletClassif(object):
         [[13, 12, 2, 5], [31, 32, 4, 0], [33, 30, 6, 3], [23, 22, 7, 1]]
     """
 
-    def __init__(self, indices_by_class, indices_by_cluster, cluster_by_index, batch_size, use_cluster, pc_noclassif=0.25, nb_indices_same_class=2, nb_indices_same_cluster=2):
+    def __init__(self, indices_by_class, indices_by_cluster, cluster_by_index, batch_size, use_cluster, pc_noclassif=0.25, nb_indices_same_class=2, nb_indices_same_cluster=2, init=False):
         self.indices_by_cluster = copy.copy(indices_by_cluster)
         self.indices_by_class = copy.copy(indices_by_class)
         self.indices_no_class = self.indices_by_class.pop(0)
         self.cluster_by_index = cluster_by_index
+        self.use_cluster = use_cluster
 
-        remove_target = copy.copy(self.indices_no_class)
-        for index in remove_target:
-            cluster = self.cluster_by_index[index]
-            self.indices_by_cluster[cluster].remove(index)
+        #switch to no class but in clusters
+        if init:
+            remove_target = copy.copy(self.indices_by_class) #swith back and forth of indices_no_class and indices_by_class
+            for indices in remove_target
+                for index in indices:
+                    cluster = self.cluster_by_index[index]
+                    try: 
+                        self.indices_by_cluster[cluster].remove(index)
+                    except:
+                        print("not found cluster for {}".format(index))
+                        continue
 
         self.batch_size = batch_size
         self.pc_noclassif = pc_noclassif
@@ -312,6 +320,7 @@ class BatchSamplerTripletClassif(object):
         #     self.batch_size_noclassif,
         #     self.nb_indices_same_cluster) if self.use_cluster else 
 
+        #switch to no class but in clusters
         self.batch_sampler_noclassif = BatchSampler(
             RandomSamplerValues(self.indices_no_class),
             self.batch_size_noclassif, True)
